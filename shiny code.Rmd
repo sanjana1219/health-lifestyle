@@ -1,0 +1,69 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(shiny)
+library(ggplot2)
+
+# Read the data set
+dataset <- read.csv("C:/Users/nethmi/Downloads/Sleep_health_and_lifestyle_dataset.csv")
+
+# Define UI for application that draws plots
+ui <- fluidPage(
+  # Application title
+  titlePanel("Sleep Health and Lifestyle Dataset"),
+  
+  # Sidebar with a select input for gender and action buttons
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("Gender",
+                  "Select Gender:",
+                  choices = unique(dataset$Gender)),
+      actionButton("plot_hist", "Plot Histogram"),
+      actionButton("plot_scatter", "Plot Scatterplot")
+    ),
+    
+    # Main panel to display the plot
+    mainPanel(
+      plotOutput("Plot")
+    )
+  )
+)
+
+# Define server logic required to draw plots
+server <- function(input, output) {
+  # Reactive expression to subset data based on selected gender
+  subset_data <- reactive({
+    subset(dataset, Gender == input$Gender)
+  })
+  
+  observeEvent(input$plot_hist, {
+    output$Plot <- renderPlot({
+      ggplot(subset_data(), aes(x = Sleep.Duration)) +
+        geom_histogram(binwidth = 1) +
+        xlab("Sleep Duration") +
+        ylab("Frequency") +
+        ggtitle(paste("Histogram of Sleep Duration for", input$Gender))
+    })
+  })
+  
+  observeEvent(input$plot_scatter, {
+    output$Plot <- renderPlot({
+      ggplot(subset_data(), aes(x = Sleep.Duration, y = Quality.of.Sleep)) +  # Replace 'Quality.of.Sleep' with the actual column name
+        geom_point() +
+        xlab("Sleep Duration") +
+        ylab("Quality of Sleep") +
+        ggtitle(paste("Scatterplot of Sleep Duration vs Quality of Sleep for", input$Gender))
+    })
+  })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+
+```
+
